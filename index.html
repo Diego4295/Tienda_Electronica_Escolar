@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tienda Electrónica Escolar</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+    }
+    .lista-productos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .producto-item {
+      background: white;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .producto-item:hover {
+      transform: translateY(-5px);
+    }
+    .producto-item img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+    .buscador {
+      width: 100%;
+      padding: 10px;
+      margin: 20px 0;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      font-size: 16px;
+    }
+    .carrito-flotante {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #4CAF50;
+      color: white;
+      padding: 15px;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+    }
+    .contador-carrito {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: red;
+      color: white;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .leyenda-pedido {
+  background-color: #fff3cd; /* Amarillo claro */
+  color: #856404; /* Texto oscuro para contraste */
+  padding: 15px;
+  text-align: center;
+  margin: 15px 0;
+  border-left: 5px solid #ffc107; /* Borde amarillo */
+  border-radius: 4px;
+  font-size: 1.1em;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+  </style>
+</head>
+<body>
+  <h1>Componentes para tu Laboratorio.co</h1>
+  <div class="leyenda-pedido">
+  ⚠️ IMPORTANTE: Todos los pedidos deben realizarse con al menos <strong>1 día de anticipación</strong>.
+</div>
+  
+  <input type="text" class="buscador" placeholder="Buscar productos..." onkeyup="filtrarProductos()">
+  
+  <div class="lista-productos" id="lista-productos">
+    <!-- Productos generados dinámicamente con JavaScript -->
+  </div>
+
+  <div class="carrito-flotante" onclick="verCarrito()">
+    🛒
+    <div class="contador-carrito" id="contador-carrito">0</div>
+  </div>
+
+  <script>
+    const productos = [
+  { id: 1, nombre: "Buzzer", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/21409dbc1/mini-buzzer-de-4-khz-a-de-1-5-a-16-vcc-con-se-al-de-tono-constante-de-85-db.jpg", precio: 16, opciones: false },
+  { id: 2, nombre: "Cables banana-caiman", img: "https://m.media-amazon.com/images/I/31gI4EgT4VL._SY445_SX342_QL70_ML2_.jpg", precio: 59, opciones: false },
+  { id: 3, nombre: "Cables Jumper", img: "https://tiendadeelectronica.mx/wp-content/uploads/2018/07/A_few_Jumper_Wires-scaled.jpg", precio: 10, opciones: true },
+  { id: 4, nombre: "Compuertas logicas", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/18652d917/circuito-integrado-ttl-4-compuertas-and-de-2-entradas-cada-una.jpg", precio: 15, opciones: true },
+  { id: 5, nombre: "Cables para conexion", img: "https://m.media-amazon.com/images/I/61W3ESGmuAL._SX522_.jpg", precio: 179, opciones: false },
+  { id: 6, nombre: "Capacitor electrolitico", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/17036fbce/capacitor-electrolitico-radial-de-100-uf-micro-faradios-a-63-volts.jpg", precio: 10, opciones: true },
+  { id: 7, nombre: "Capacitor ceramico", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/165651c00/capacitor-ceramico-de-disco-de-0-01-uf-micro-faradios-a-50-volts.jpg", precio: 1, opciones: true },
+  { id: 8, nombre: "Diodos de silicio", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/152470d37/diodo-rectificador-de-1-amper-1000-v-de-proposito-general.jpg", precio: 3, opciones: true },
+  { id: 9, nombre: "Diodos zener", img: "https://www.steren.com.mx/media/catalog/product/cache/bb0cad18a6adb5d17b0efd58f4201a2f/image/192464c8c/diodo-zener-1-2-watt-5-tolerancia.jpg", precio: 3, opciones: true },
+  { id: 10, nombre: "Fotorresistencias", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiA8HS8Yzywd2Z1BK5X5iihLtqyOluyXt5uA&s", precio: 8, opciones: true },
+  { id: 11, nombre: "Interruptor", img: "https://imgs.search.brave.com/I4y0NJPbljUyqbklwXypm-gmxWVAn5a__N-kF0PBXc8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9odHRw/Mi5tbHN0YXRpYy5j/b20vRF9OUV9OUF82/NDkyNjAtTUxNNDU0/OTYyMjkyNzJfMDQy/MDIxLVcud2VicA", precio: 3, opciones: false },
+  { id: 12, nombre: "LED", img: "https://content.instructables.com/FU1/3N1T/IDQHOCL8/FU13N1TIDQHOCL8.jpg", precio: 3, opciones: true },
+  { id: 13, nombre: "LED IR", img: "https://uelectronics.com/wp-content/uploads/AR0401-Par-de-Led-IR-infrarrojos-Receptor-Transmisor-v1.jpg", precio: 5, opciones: true },
+  { id: 14, nombre: "Microfono electret", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/17153360b/pastilla-tipo-condensador-electret.jpg", precio: 9, opciones: false },
+  { id: 15, nombre: "Octoacoplador 4N26", img: "https://imgs.search.brave.com/RJsgRh43UA1QbX7DpS3rXAlt2RYirw975G2yEVfTru8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tLm1l/ZGlhLWFtYXpvbi5j/b20vaW1hZ2VzL0kv/NDFsSW9ZZmNCcUwu/X0FDLl9TUjE4MCwy/MzAuanBn", precio: 5, opciones: false },
+  { id: 16, nombre: "Potenciometro", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/15174bea9/potenciometro-miniatura-sin-switch-de-5-kohms.jpg", precio: 9, opciones: true },
+  { id: 17, nombre: "Protoboard", img: "https://www.carrod.mx/cdn/shop/products/PROTO_2839346e-8e87-4bb1-8ef1-32b48ef8937e_1024x1024.png", precio: 169, opciones: false },
+  { id: 18, nombre: "Resistencia", img: "https://blogs.upm.es/electronica/wp-content/uploads/sites/956/2022/01/resis.jpg", precio: 2, opciones: true },
+  { id: 19, nombre: "Timer LM555", img: "https://http2.mlstatic.com/D_NQ_NP_918003-MLM70681520356_072023-O-ne555-temporizador-timer-555-circuito-integrado-10-piezas.webp", precio: 9, opciones: false },
+  { id: 20, nombre: "Transistor de silicio", img: "https://imgs.search.brave.com/7rh2cEP0_GSu506QXbe8HfCXFnLbhwtr_E1d1zS-PN4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTA1/NzkxMTk4NC9waG90/by9lbGVjdHJvbmlj/LXRyYW5zaXN0b3It/aXNvbGF0ZWQuanBn/P3M9NjEyeDYxMiZ3/PTAmaz0yMCZjPUdV/eXQwXzVUdkVSeVFT/VEh2SVRMY1hHVGJw/UWo4ZVVjRF9WZDhO/QWNlU1k9", precio: 3, opciones: true }
+];
+
+    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+
+    function cargarProductos() {
+      const contenedor = document.getElementById('lista-productos');
+      contenedor.innerHTML = '';
+      
+      productos.forEach(producto => {
+        const div = document.createElement('div');
+        div.className = 'producto-item';
+        div.innerHTML = `
+          <img src="${producto.img}" alt="${producto.nombre}">
+          <h3>${producto.nombre}</h3>
+          <p>Desde $${producto.precio}</p>
+        `;
+        div.onclick = () => verDetalleProducto(producto.id);
+        contenedor.appendChild(div);
+      });
+      
+      actualizarContadorCarrito();
+    }
+
+    function verDetalleProducto(id) {
+      localStorage.setItem('productoActual', id);
+      window.location.href = 'detalle.html';
+    }
+
+    function filtrarProductos() {
+      const input = document.querySelector('.buscador');
+      const filter = input.value.toUpperCase();
+      const items = document.querySelectorAll('.producto-item');
+      
+      items.forEach(item => {
+        const nombre = item.querySelector('h3').textContent.toUpperCase();
+        if (nombre.includes(filter)) {
+          item.style.display = "";
+        } else {
+          item.style.display = "none";
+        }
+      });
+    }
+
+    function actualizarContadorCarrito() {
+      const totalItems = carrito.reduce((total, item) => total + item.cantidad, 0);
+      document.getElementById('contador-carrito').textContent = totalItems;
+    }
+
+    function verCarrito() {
+      window.location.href = 'carrito.html';
+    }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', cargarProductos);
+  </script>
+</body>
+</html>

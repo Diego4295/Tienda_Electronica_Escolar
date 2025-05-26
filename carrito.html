@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tu Carrito</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .volver {
+      display: inline-block;
+      margin-bottom: 20px;
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+    }
+    .contenedor-carrito {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .item-carrito {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    .item-carrito img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      margin-right: 15px;
+    }
+    .info-item {
+      flex-grow: 1;
+    }
+    .eliminar-item {
+      color: red;
+      cursor: pointer;
+      margin-left: 15px;
+    }
+    .total {
+      font-weight: bold;
+      font-size: 1.2em;
+      text-align: right;
+      margin-top: 20px;
+    }
+    .boton-comprar {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 20px;
+    }
+    .sin-productos {
+      color: #999;
+      font-style: italic;
+      text-align: center;
+      padding: 20px;
+    }
+    /* Nuevos estilos para el formulario */
+    .formulario-cliente {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    .formulario-cliente label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: bold;
+    }
+    .formulario-cliente input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    .formulario-cliente input:required {
+      border-left: 3px solid #ff9800;
+    }
+    .mensaje-exito {
+      color: #4CAF50;
+      font-weight: bold;
+      text-align: center;
+      margin: 20px 0;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="volver">← Volver a productos</a>
+  
+  <div class="contenedor-carrito">
+    <h2>Tu Carrito</h2>
+    <div id="lista-carrito">
+      <!-- Items del carrito se cargan aquí -->
+    </div>
+    <div class="total" id="total-carrito">Total: $0</div>
+
+    <!-- Formulario del cliente -->
+    <form id="formulario-cliente" class="formulario-cliente">
+      <h3>Datos de contacto</h3>
+      
+      <label for="nombre">Nombre completo*:</label>
+      <input type="text" id="nombre" name="nombre" required placeholder="Ej: Juan Pérez">
+      
+      <label for="telefono">Teléfono*:</label>
+      <input type="tel" id="telefono" name="telefono" required placeholder="Ej: 5512345678">
+      
+      <label for="email">Email (opcional):</label>
+      <input type="email" id="email" name="email" placeholder="tucorreo@example.com">
+      
+      <label for="comentarios">Fecha de entrega y comentarios:</label>
+      <input type="text" id="comentarios" name="comentarios" placeholder="Especificaciones especiales...">
+      
+      <!-- Campo oculto para los datos del pedido -->
+      <input type="hidden" id="datos-pedido" name="pedido">
+    </form>
+
+    <div id="mensaje-exito" class="mensaje-exito">
+      ¡Pedido recibido! Te contactaremos pronto.
+    </div>
+
+    <!-- Agrega esto justo antes del botón "Finalizar Compra" -->
+<div class="recordatorio-pedido">
+  <p>✅ Recuerda que tu pedido estará listo para recoger <strong>1 día hábil</strong> después de realizado.</p>
+</div>
+
+<style>
+.recordatorio-pedido {
+  background: #e7f8e7;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 15px 0;
+  border-left: 4px solid #4CAF50;
+  font-size: 0.9em;
+}
+</style>
+
+    <button class="boton-comprar" onclick="finalizarCompra()">
+  Finalizar Compra 
+  <span class="tooltip">⚠️ Recuerda el plazo de 1 día</span>
+</button>
+
+<style>
+.boton-comprar {
+  position: relative;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.boton-comprar:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+</style>
+
+  <script>
+    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+
+    function cargarCarrito() {
+      const contenedor = document.getElementById('lista-carrito');
+      
+      if (carrito.length === 0) {
+        contenedor.innerHTML = '<div class="sin-productos">No hay productos en el carrito</div>';
+        document.getElementById('total-carrito').textContent = 'Total: $0';
+        return;
+      }
+      
+      contenedor.innerHTML = '';
+      let total = 0;
+      
+      carrito.forEach((item, index) => {
+        total += item.precio * item.cantidad;
+        
+        const div = document.createElement('div');
+        div.className = 'item-carrito';
+        div.innerHTML = `
+          <img src="${item.img}" alt="${item.nombre}">
+          <div class="info-item">
+            <h3>${item.nombre}</h3>
+            ${item.opciones ? `<p>${Object.entries(item.opciones).map(([k,v]) => `${k}: ${v}`).join(', ')}</p>` : ''}
+            <p>Cantidad: ${item.cantidad} | $${item.precio} c/u</p>
+          </div>
+          <span class="eliminar-item" onclick="eliminarDelCarrito(${index})">✕</span>
+        `;
+        contenedor.appendChild(div);
+      });
+      
+      document.getElementById('total-carrito').textContent = `Total: $${total}`;
+    }
+
+    function eliminarDelCarrito(index) {
+      carrito.splice(index, 1);
+      localStorage.setItem('carrito', JSON.stringify(carrito));
+      cargarCarrito();
+    }
+
+    function generarTextoPedido() {
+      let texto = "DETALLE DEL PEDIDO:\n\n";
+      
+      carrito.forEach(item => {
+        texto += `- ${item.nombre}`;
+        if (item.opciones) {
+          texto += ` (${Object.values(item.opciones).join(', ')})`;
+        }
+        texto += ` | Cantidad: ${item.cantidad} | Subtotal: $${item.precio * item.cantidad}\n`;
+      });
+      
+      texto += `\nTOTAL: $${document.getElementById('total-carrito').textContent.split('$')[1]}`;
+      return texto;
+    }
+
+    function finalizarCompra() {
+      if (carrito.length === 0) {
+        alert('No hay productos en el carrito');
+        return;
+      }
+      
+      // Validar formulario
+      const formulario = document.getElementById('formulario-cliente');
+      const nombre = document.getElementById('nombre').value.trim();
+      const telefono = document.getElementById('telefono').value.trim();
+      
+      if (!nombre || !telefono) {
+        alert('Por favor completa los campos obligatorios (Nombre y Teléfono)');
+        return;
+      }
+      
+      // Generar texto del pedido
+      const textoPedido = `DATOS DEL CLIENTE:\nNombre: ${nombre}\nTeléfono: ${telefono}\nEmail: ${document.getElementById('email').value || 'No proporcionado'}\n\n${generarTextoPedido()}`;
+      
+      // Poner en campo oculto
+      document.getElementById('datos-pedido').value = textoPedido;
+      
+      // Enviar el formulario (usando Formspree como en tu versión original)
+      fetch('https://formspree.io/f/xyzwoyeo', {
+        method: 'POST',
+        body: new FormData(formulario),
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          // Mostrar mensaje de éxito
+          document.getElementById('mensaje-exito').style.display = 'block';
+          formulario.style.display = 'none';
+          document.querySelector('.boton-comprar').style.display = 'none';
+          
+          // Vaciar carrito
+          carrito = [];
+          localStorage.setItem('carrito', JSON.stringify(carrito));
+        } else {
+          throw new Error('Error al enviar el pedido');
+        }
+      })
+      .catch(error => {
+        alert('Ocurrió un error al enviar tu pedido: ' + error.message);
+      });
+    }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', cargarCarrito);
+  </script>
+</body>
+</html>

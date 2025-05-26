@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle del Producto</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .volver {
+      display: inline-block;
+      margin-bottom: 20px;
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+    }
+    .contenedor-detalle {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .imagen-producto {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      margin: 0 auto 20px;
+      display: block;
+    }
+    .opciones-container {
+      margin: 20px 0;
+    }
+    .opcion {
+      margin-bottom: 15px;
+    }
+    .opcion label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .opcion select, .opcion input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    .boton-agregar {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="volver">← Volver a productos</a>
+  
+  <div class="contenedor-detalle" id="contenedor-detalle">
+    <!-- Detalles cargados dinámicamente -->
+  </div>
+
+  <script>
+    const productoId = localStorage.getItem('productoActual');
+    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+
+    // Configuraciones de opciones por producto
+    const opcionesProductos = {
+      4: { // Compuertas logicas
+        "Tipo": ["AND", "OR", "NOT"]
+      },
+      6: { // Capacitor electrolitico
+        "Faradios": ["1μF", "10μF", "22μF", "47μF", "100μF", "120μF", "1000μF"],
+        "Volts": ["16V", "50V", "150V"]
+      },
+      7: { // Capacitor ceramico
+        "Faradios": ["0.01μF", "0.1μF"],
+      },
+      8: { // Diodos de silicio
+        "Tipo": ["1N4154", "1N4001", "1N4007", "1N914"]
+      },
+      9: { // Diodos zener
+        "Tipo": ["1N4148", "1N4740", "1N4741"]
+      },
+      12: { // LED
+        "Color": ["Rojo", "Verde", "Azul", "Amarillo", "Blanco"]
+      },
+      13: { // LED IR
+        "Tipo": ["Receptor", "Transmisor"]
+      },
+      16: { // Potenciometro
+        "Ohms": ["5kΩ", "10kΩ", "50kΩ"],
+      },
+      18: { // Resistencia
+        "Ohms": ["10Ω", "100Ω", "200Ω", "220Ω", "270Ω", "330Ω", "470Ω", "560Ω", "680Ω", "1kΩ", "3.3kΩ", "4.7kΩ", "5.6kΩ", "10kΩ", "47kΩ", "50kΩ", "100kΩ", "10MΩ"],
+        "Watts": ["1/4W", "1/2W", "1W", "5W"]
+      },
+      20: { // Transistor de silicio
+        "Tipo": ["2N222", "BC548"]
+      }
+    };
+
+    const productos = [
+  { id: 1, nombre: "Buzzer", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/21409dbc1/mini-buzzer-de-4-khz-a-de-1-5-a-16-vcc-con-se-al-de-tono-constante-de-85-db.jpg", precio: 16, opciones: false },
+  { id: 2, nombre: "Cables banana-caiman", img: "https://m.media-amazon.com/images/I/31gI4EgT4VL._SY445_SX342_QL70_ML2_.jpg", precio: 59, opciones: false },
+  { id: 3, nombre: "Cables Jumper", img: "https://tiendadeelectronica.mx/wp-content/uploads/2018/07/A_few_Jumper_Wires-scaled.jpg", precio: 10, opciones: true },
+  { id: 4, nombre: "Compuertas logicas", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/18652d917/circuito-integrado-ttl-4-compuertas-and-de-2-entradas-cada-una.jpg", precio: 15, opciones: true },
+  { id: 5, nombre: "Cables para conexion", img: "https://m.media-amazon.com/images/I/61W3ESGmuAL._SX522_.jpg", precio: 179, opciones: false },
+  { id: 6, nombre: "Capacitor electrolitico", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/17036fbce/capacitor-electrolitico-radial-de-100-uf-micro-faradios-a-63-volts.jpg", precio: 10, opciones: true },
+  { id: 7, nombre: "Capacitor ceramico", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/165651c00/capacitor-ceramico-de-disco-de-0-01-uf-micro-faradios-a-50-volts.jpg", precio: 1, opciones: true },
+  { id: 8, nombre: "Diodos de silicio", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/152470d37/diodo-rectificador-de-1-amper-1000-v-de-proposito-general.jpg", precio: 3, opciones: true },
+  { id: 9, nombre: "Diodos zener", img: "https://www.steren.com.mx/media/catalog/product/cache/bb0cad18a6adb5d17b0efd58f4201a2f/image/192464c8c/diodo-zener-1-2-watt-5-tolerancia.jpg", precio: 3, opciones: true },
+  { id: 10, nombre: "Fotorresistencias", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRiA8HS8Yzywd2Z1BK5X5iihLtqyOluyXt5uA&s", precio: 8, opciones: true },
+  { id: 11, nombre: "Interruptor", img: "https://imgs.search.brave.com/I4y0NJPbljUyqbklwXypm-gmxWVAn5a__N-kF0PBXc8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9odHRw/Mi5tbHN0YXRpYy5j/b20vRF9OUV9OUF82/NDkyNjAtTUxNNDU0/OTYyMjkyNzJfMDQy/MDIxLVcud2VicA", precio: 3, opciones: false },
+  { id: 12, nombre: "LED", img: "https://content.instructables.com/FU1/3N1T/IDQHOCL8/FU13N1TIDQHOCL8.jpg", precio: 3, opciones: true },
+  { id: 13, nombre: "LED IR", img: "https://uelectronics.com/wp-content/uploads/AR0401-Par-de-Led-IR-infrarrojos-Receptor-Transmisor-v1.jpg", precio: 5, opciones: true },
+  { id: 14, nombre: "Microfono electret", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/17153360b/pastilla-tipo-condensador-electret.jpg", precio: 9, opciones: false },
+  { id: 15, nombre: "Octoacoplador 4N26", img: "https://imgs.search.brave.com/RJsgRh43UA1QbX7DpS3rXAlt2RYirw975G2yEVfTru8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tLm1l/ZGlhLWFtYXpvbi5j/b20vaW1hZ2VzL0kv/NDFsSW9ZZmNCcUwu/X0FDLl9TUjE4MCwy/MzAuanBn", precio: 5, opciones: false },
+  { id: 16, nombre: "Potenciometro", img: "https://www.steren.com.mx/media/catalog/product/cache/0236bbabe616ddcff749ccbc14f38bf2/image/15174bea9/potenciometro-miniatura-sin-switch-de-5-kohms.jpg", precio: 9, opciones: true },
+  { id: 17, nombre: "Protoboard", img: "https://www.carrod.mx/cdn/shop/products/PROTO_2839346e-8e87-4bb1-8ef1-32b48ef8937e_1024x1024.png", precio: 169, opciones: false },
+  { id: 18, nombre: "Resistencia", img: "https://blogs.upm.es/electronica/wp-content/uploads/sites/956/2022/01/resis.jpg", precio: 2, opciones: true },
+  { id: 19, nombre: "Timer LM555", img: "https://http2.mlstatic.com/D_NQ_NP_918003-MLM70681520356_072023-O-ne555-temporizador-timer-555-circuito-integrado-10-piezas.webp", precio: 9, opciones: false },
+  { id: 20, nombre: "Transistor de silicio", img: "https://imgs.search.brave.com/7rh2cEP0_GSu506QXbe8HfCXFnLbhwtr_E1d1zS-PN4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTA1/NzkxMTk4NC9waG90/by9lbGVjdHJvbmlj/LXRyYW5zaXN0b3It/aXNvbGF0ZWQuanBn/P3M9NjEyeDYxMiZ3/PTAmaz0yMCZjPUdV/eXQwXzVUdkVSeVFT/VEh2SVRMY1hHVGJw/UWo4ZVVjRF9WZDhO/QWNlU1k9", precio: 3, opciones: true }
+];
+
+    function cargarDetalleProducto() {
+      const producto = productos.find(p => p.id == productoId);
+      if (!producto) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const contenedor = document.getElementById('contenedor-detalle');
+      contenedor.innerHTML = `
+        <img src="${producto.img}" alt="${producto.nombre}" class="imagen-producto">
+        <h2>${producto.nombre}</h2>
+        <p>Precio: $${producto.precio}</p>
+        
+        <div class="opciones-container" id="opciones-container">
+          ${generarOpciones(producto.id)}
+        </div>
+        
+        <div class="opcion">
+          <label for="cantidad">Cantidad:</label>
+          <input type="number" id="cantidad" min="1" value="1">
+        </div>
+        
+        <button class="boton-agregar" onclick="agregarAlCarrito()">Agregar al carrito</button>
+      `;
+    }
+
+    function generarOpciones(productoId) {
+      if (!opcionesProductos[productoId]) return '';
+      
+      let html = '';
+      for (const [nombreOpcion, valores] of Object.entries(opcionesProductos[productoId])) {
+        html += `
+          <div class="opcion">
+            <label for="${nombreOpcion.toLowerCase()}">${nombreOpcion}:</label>
+            <select id="${nombreOpcion.toLowerCase()}">
+              ${valores.map(valor => `<option value="${valor}">${valor}</option>`).join('')}
+            </select>
+          </div>
+        `;
+      }
+      return html;
+    }
+
+    function agregarAlCarrito() {
+      const producto = productos.find(p => p.id == productoId);
+      const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
+      
+      let opciones = {};
+      if (opcionesProductos[productoId]) {
+        for (const [nombreOpcion] of Object.entries(opcionesProductos[productoId])) {
+          opciones[nombreOpcion] = document.getElementById(nombreOpcion.toLowerCase()).value;
+        }
+      }
+      
+      const itemCarrito = {
+        id: producto.id,
+        nombre: producto.nombre,
+        precio: producto.precio,
+        cantidad: cantidad,
+        opciones: Object.keys(opciones).length > 0 ? opciones : null,
+        img: producto.img
+      };
+      
+      // Verificar si ya existe en el carrito
+      const indexExistente = carrito.findIndex(item => 
+        item.id === producto.id && 
+        JSON.stringify(item.opciones) === JSON.stringify(opciones)
+      );
+      
+      if (indexExistente >= 0) {
+        carrito[indexExistente].cantidad += cantidad;
+      } else {
+        carrito.push(itemCarrito);
+      }
+      
+      localStorage.setItem('carrito', JSON.stringify(carrito));
+      alert('Producto agregado al carrito');
+    }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', cargarDetalleProducto);
+  </script>
+</body>
+</html>
